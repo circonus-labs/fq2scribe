@@ -1,2 +1,3 @@
 bin/fq2scribe
+lib/fqclient/
 target/

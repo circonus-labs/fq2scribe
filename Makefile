@@ -2,11 +2,18 @@ MAVEN=mvn
 JAVA=/opt/circonus/java/bin/java
 PREFIX=/opt/circonus
 
+FILES=src/main/java/com/circonus/fq2scribe/Fq2Scribe.java \
+    src/main/java/com/facebook/fb303/FacebookService.java \
+    src/main/java/com/facebook/fb303/fb_status.java \
+    src/main/java/scribe/LogEntry.java \
+    src/main/java/scribe/ResultCode.java \
+    src/main/java/scribe/scribe.java
+
 SINGLEJAR=fq2scribe-1.0-jar-with-dependencies.jar
 
 all:	target/$(SINGLEJAR) bin/fq2scribe
 
-target/$(SINGLEJAR):
+target/$(SINGLEJAR):	$(FILES)
 	(cd lib && ./stub-as-maven.sh)
 	$(MAVEN) compile assembly:single
 

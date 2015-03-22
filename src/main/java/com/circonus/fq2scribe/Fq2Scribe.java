@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.net.Socket;
@@ -27,6 +28,8 @@ import java.io.IOException;
 public class Fq2Scribe {
     protected final static String DEFAULT_PROGRAM =
         "prefix:\"scribe.zipkin.\"";
+    public final static SimpleDateFormat df =
+        new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private boolean connected = false;
     private String host;
     private int port;
@@ -80,11 +83,13 @@ public class Fq2Scribe {
 
     protected static class FqConnector extends FqClientImplNoop {
         private Fq2Scribe s;
+        private String host;
         private String exchange;
         private String prog;
         private Map<String,Long> last_status;
-        public FqConnector(Fq2Scribe _s, String _exchange, String _prog) {
-            s = _s; exchange = _exchange; prog = _prog;
+        private Boolean verbose;
+        public FqConnector(String _host, Fq2Scribe _s, String _exchange, String _prog, Boolean _verbose) {
+            host = _host; s = _s; exchange = _exchange; prog = _prog; verbose = _verbose;
         }
         public void dispatchAuth(FqCommand.Auth a) {
             if(a.success()) {
@@ -99,8 +104,14 @@ public class Fq2Scribe {
             Map<String,Long> m = cmd.getMap();
             boolean has_keys = false;
             for(String key : m.keySet()) {
-	if(last_status == null || !m.get(key).equals(last_status.get(key)))
-	    System.err.println("    " + key + " : " + ((last_status == null) ? 0 : last_status.get(key)) + " -> " +  m.get(key));
+	if(last_status == null || !m.get(key).equals(last_status.get(key))) {
+	    if(verbose) {
+	        System.err.println("[" + Fq2Scribe.df.format(d) + "] " +
+	            host + ":" + key + " : " +
+	            ((last_status == null) ? 0 : last_status.get(key)) +
+	            " -> " +  m.get(key));
+	    }
+	}
 	has_keys = true;
             }
             if(has_keys) last_status = m;
@@ -114,6 +125,7 @@ public class Fq2Scribe {
     }
 
     public static void main(String []args) {
+        Boolean verbose = false;
         String scribehost = null;
         Integer scribeport = null;
         String fq_exchange = null;
@@ -124,6 +136,7 @@ public class Fq2Scribe {
 
         Options options = new Options();
         options.addOption(new Option("h", "print this message"));
+        options.addOption(new Option("v", "verbose (print traffic info)"));
         options.addOption(new Option("s", "Fq source (user/queue)"));
         options.addOption(new Option("p", "Fq password"));
         options.addOption(new Option("prog", "Fq program"));
@@ -156,6 +169,7 @@ public class Fq2Scribe {
 	System.err.println("-fq hosts required");
 	System.exit(2);
             }
+            verbose = line.hasOption("v");
             fq_exchange = line.getOptionValue("e", "logging");
             fq_source = line.getOptionValue("s", "fq2scribe");
             fq_pass = line.getOptionValue("p", "password");
@@ -177,7 +191,9 @@ public class Fq2Scribe {
 	fq_host = parts[0];
             }
             try {
-	FqClient client = new FqClient(new FqConnector(s, fq_exchange, fq_prog));
+	FqClient client =
+	    new FqClient(
+	        new FqConnector(fq_host, s, fq_exchange, fq_prog, verbose));
 	client.creds(fq_host, fq_port, fq_source, fq_pass);
 	client.connect();
 	clients[i] = client;
