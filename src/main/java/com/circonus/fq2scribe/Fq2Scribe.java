@@ -163,7 +163,7 @@ public class Fq2Scribe {
 	System.exit(0);
             }
             scribehost = line.getOptionValue("scribehost", "127.0.0.1");
-            scribeport = Integer.parseInt(line.getOptionValue("scribeport", "1490"));
+            scribeport = Integer.parseInt(line.getOptionValue("scribeport", "9410"));
             fq_hosts = line.getOptionValues("fq");
             if(fq_hosts == null) {
 	System.err.println("-fq hosts required");
