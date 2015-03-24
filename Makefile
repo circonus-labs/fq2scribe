@@ -19,18 +19,22 @@ target/$(SINGLEJAR):	$(FILES)
 
 bin/fq2scribe:	bin/fq2scribe.in
 	sed -e "s#@JAVA@#$(JAVA)#g" \
-	    -e "s#@PREFIX@#$(PREFIX)#g" \
+	    -e 's#@JARPREFIX@#$$DIRNAME/../target#g' \
 	    < $< > $@
 	chmod 755 $@
 
 install:	all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f bin/fq2scribe $(DESTDIR)$(PREFIX)/bin/fq2scribe
+	rm -f $(DESTDIR)$(PREFIX)/bin/fq2scribe
+	sed -e "s#@JAVA@#$(JAVA)#g" \
+	    -e "s#@JARPREFIX@#$(PREFIX)/lib/java#g" \
+	    < bin/fq2scribe.in > $(DESTDIR)$(PREFIX)/bin/fq2scribe
 	chmod 555 $(DESTDIR)$(PREFIX)/bin/fq2scribe
 	mkdir -p $(DESTDIR)$(PREFIX)/lib/java
 	cp -f target/$(SINGLEJAR) $(DESTDIR)$(PREFIX)/lib/java/$(SINGLEJAR)
 	chmod 444 $(DESTDIR)$(PREFIX)/lib/java/$(SINGLEJAR)
 
 clean:
+	rm -f ~/.m2/repository/fqclient/fqclient/0.1/fqclient-0.1.jar
 	rm -f target/$(SINGLEJAR)
 	rm -f bin/fq2scribe

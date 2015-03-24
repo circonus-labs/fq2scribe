@@ -1,6 +1,7 @@
 #!/bin/sh
 
+DIRNAME=`dirname $0`
 JAVA=@JAVA@
-JARFILE=@PREFIX@/lib/java/fq2scribe-1.0-jar-with-dependencies.jar
+JARFILE=@JARPREFIX@/fq2scribe-1.0-jar-with-dependencies.jar
 
 exec $JAVA -jar $JARFILE $*
