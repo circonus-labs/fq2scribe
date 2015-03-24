@@ -5,6 +5,7 @@ import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TTransportException;
+import org.apache.thrift.TApplicationException;
 import scribe.LogEntry;
 import scribe.scribe.Client;
 
@@ -44,6 +45,7 @@ public class Fq2Scribe {
             transport = new TFramedTransport(sock);
             TBinaryProtocol protocol = new TBinaryProtocol(transport, false, false);
             client = new Client(protocol, protocol);
+            System.err.println("Connecting to scribe " + host + ":" + port);
             connected = true;
         } catch (TTransportException e) {
             transport.close();
@@ -64,8 +66,15 @@ public class Fq2Scribe {
 
         logEntries.add(entry);
         connect();
-        try { client.Log(logEntries); }
+        try {
+          client.Log(logEntries);
+        }
         catch (TTransportException e) {
+            transport.close();
+            connected = false;
+        }
+        catch (TApplicationException tae) {
+            System.err.println("Thrift Exception: " + tae);
             transport.close();
             connected = false;
         }
@@ -116,11 +125,13 @@ public class Fq2Scribe {
             }
             if(has_keys) last_status = m;
         }
-
         public void dispatch(FqMessage m) {
             try {
 	s.send("zipkin", Base64.encodeBase64String(m.getPayload()));
             } catch(Exception e) { System.err.println(e); }
+        }
+        public void dataError(Throwable e) {
+            System.err.println("DATA ERROR: " + e);
         }
     }
 
@@ -180,7 +191,6 @@ public class Fq2Scribe {
             System.exit(2);
         }
 
-        Fq2Scribe s = new Fq2Scribe(scribehost, scribeport);
         FqClient []clients = new FqClient[fq_hosts.length];
         for (int i=0; i<fq_hosts.length; i++) {
             String fq_host = fq_hosts[i];
@@ -191,6 +201,7 @@ public class Fq2Scribe {
 	fq_host = parts[0];
             }
             try {
+	Fq2Scribe s = new Fq2Scribe(scribehost, scribeport);
 	FqClient client =
 	    new FqClient(
 	        new FqConnector(fq_host, s, fq_exchange, fq_prog, verbose));
