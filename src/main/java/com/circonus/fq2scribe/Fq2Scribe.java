@@ -28,7 +28,7 @@ import java.io.IOException;
 
 public class Fq2Scribe {
     protected final static String DEFAULT_PROGRAM =
-        "prefix:\"scribe.zipkin.\"";
+        "prefix:\"zipkin.thrift.\"";
     public final static SimpleDateFormat df =
         new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private boolean connected = false;
@@ -103,6 +103,9 @@ public class Fq2Scribe {
         public void dispatchAuth(FqCommand.Auth a) {
             if(a.success()) {
 	client.setHeartbeat(500);
+	if(verbose) {
+	  System.err.println("fq binding '" + exchange+ "' with '" + prog + "'");
+	}
 	FqCommand.BindRequest breq =
 	    new FqCommand.BindRequest(exchange, prog, false);
 	client.send(breq);
