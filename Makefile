@@ -13,9 +13,7 @@ SINGLEJAR=fq2scribe-1.0-jar-with-dependencies.jar
 
 all:	target/$(SINGLEJAR) bin/fq2scribe
 
-target/$(SINGLEJAR):	$(FILES) lib/fqclient.jar
-	rm -f ~/.m2/repository/fqclient/fqclient/0.1/fqclient-0.1.jar
-	(cd lib && ./stub-as-maven.sh)
+target/$(SINGLEJAR):	$(FILES)
 	$(MAVEN) compile assembly:single
 
 bin/fq2scribe:	bin/fq2scribe.in
@@ -36,6 +34,5 @@ install:	all
 	chmod 444 $(DESTDIR)$(PREFIX)/lib/java/$(SINGLEJAR)
 
 clean:
-	rm -f ~/.m2/repository/fqclient/fqclient/0.1/fqclient-0.1.jar
 	rm -f target/$(SINGLEJAR)
 	rm -f bin/fq2scribe

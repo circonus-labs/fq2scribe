@@ -47,9 +47,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>fqclient</groupId>
+      <groupId>com.circonus</groupId>
       <artifactId>fqclient</artifactId>
-      <version>0.1</version>
+      <version>0.0.1</version>
     </dependency>
     <dependency>
         <groupId>commons-cli</groupId>
